@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="verb.js"></script>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Greek</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  </head>
+
+<div id="app">
+
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="noun-tab" data-bs-toggle="tab" data-bs-target="#noun-tab-pane" type="button" role="tab" aria-controls="noun-tab-pane" aria-selected="true">Сущест.</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="verb-tab" data-bs-toggle="tab" data-bs-target="#verb-tab-pane" type="button" role="tab" aria-controls="verb-tab-pane" aria-selected="false">Глаголы</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="other-tab" data-bs-toggle="tab" data-bs-target="#other-tab-pane" type="button" role="tab" aria-controls="other-tab-pane" aria-selected="false">Other</button>
+  </li>
+</ul>
+<div class="tab-content" id="myTabContent">
+  <div class="tab-pane fade show active" id="noun-tab-pane" role="tabpanel" aria-labelledby="noun-tab" tabindex="0">TBD</div>
+  <div class="tab-pane fade" id="verb-tab-pane" role="tabpanel" aria-labelledby="verb-tab" tabindex="0"> 
+    <div class="accordion" id="accordionExample">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                General information
+            </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+            <div class="container-sm">
+                <h5>Перфектная и имперфектная формы</h5>
+                <p>
+                    Греческие глаголы обычно имеют два корня - перфектная (законченная) и имперфектная (незаконченная) формы. Перфектный корень обычно легко вывести из имперфектного: present tense: γράφω -> aorist: έγραψα.
+                    Иногда также есть третий корень - перфектная форма в страдательном залоге. Все времена+склонения+наклонения+залоги образуются из этих корней путем добавления суффиксов и окончаний по несложным правилам.
+                </p>
+                <h5>Сокращенные и несокращенные глаголы</h5>
+                <p>
+                    Сокращенные глаголы - это глаголы типа αγαπάω, у них есть сокращенная форма αγαπώ. От остальных они отличаются тем, что у них особые окончания настоящего времени, а также немного другие
+                    окончания имперфекта и условного наклонения. Некоторые такие глаголы окончательно сократились и форма с -άω не употребляется (κινώ). Такие глаголы в настоящем времени часто склоняются похоже
+                    на обычные (προσπαθώ), но ударение ставится по прежнему на последний слог!
+                </p>
+                <h5>Present</h5>
+                <p>
+                    Это базовая форма с имперфектным корнем: ανοίγ(ανοίγω). Используется для описания текущих и регулярных событий. Окончания: -ω -εις -ει -ουμε|ομε -ετε -ουν(ε) (обычные),
+                    -(ά)ω -άς -ά(ει) -ουμε|άμε -άτε -άν(ε)|ούν(ε) (сокращенные), -ώ -είς -εί -ούμε -είτε -ούν(ε) (сокращенные без ά). Пример: ανοίγω ανοίγεις ανοίγει ανοίγουμε/ανοίγομε ανοίγετε ανοίγουν/ανοίγουνε,
+                    μιλάω/μιλώ μιλάς μιλά/μιλάει μιλούμε/μιλάμε μιλάτε μιλάν/μιλάνε/μιλούν/μιλούνε, ανησυχώ ανησυχείς ανησυχεί ανησυχούμε ανησυχείτε ανησυχούν/ανησυχούνε.
+                </p>
+                <p>
+                    В пассивном залоге корень остается, окончания меняются: -ομαι -εσαι -εται -όμαστε -εστε|όσαστε -ονται (обычные),
+                </p>
+                <h5>Past imperfect + perfect (aorist)</h5>
+                <p>
+                    Имперфект описывает длящееся/повторяющееся действие в прошлом (например, как фон для другого действия). Аорист - просто некое завершенное событие в прошлом, которое воспринимается как одно целое.
+                    Оба времени образуются из своих корней (имперфектного и перфектного) следующим образом: берем корень и смещаем ударение влево (ανοίγ/ανοίξ -> άνοιγ/άνοιξ). Если нет гласной добавляем έ в начало:
+                    γράφ/γράψ -> έγραφ/έγραψ. Затем добавляем окончание прошедшего времени: . Замечание: έ может "добавляться" даже если формально уже есть гласная. В этом случае она е-фицирует эту гласную. Это
+                    происходит на границе приставки и корня (περιγράφω -> περιέγραφα, υπογράφω -> υπέγραφα, διαγράφω -> διέγραφα), если это первая буква (ελπίζω -> ήλπιζα) и в исключениях.
+                </p>
+                <p>
+                    В пассивном залоге имперфектный корень остается, перфектный видоизменяется: ανοίξ -> ανοίχ. В случае нормальных глаголов последний согласный взаимодействует с τ в окончании, поэтому и происходит
+                    изменение (далеко не всегда). Сокращенные глаголы обычно не меняются, но имеют немного другие окончания.</p>
+                <p>
+                    Чтобы получить имперфект в пассивном залоге берем имперфектный корень без ударения и добавляем окончания в зависимости от вида глагола: . Перфектный проще, там окончания похожи на аорист: .
+                </p>
+                <h5>Future + Subjunctive</h5>
+                <p>
+                    Как обычно перфектная форма обозначает одиночное действие, а имперфектная повторяющееся или длящееся действие. Для будущего используется частица θα, для условного να. Будущее - это
+                    самостоятельное время, условное же чаще всего присоединяется к другому глаголу или даже предложению и выражает гораздо больше сомнения, что действие произойдет.
+                    Времена образуются по схеме: θα/να + корень (перфект/имперфект) + окончания настоящего времени. В имперфекте получается настоящее время. θα(να) ανοίγω/θα(να) ανοίξω.
+                </p>
+                <p>
+                    Пассивный залог имперфекта строится аналогично на основе пассива настоящего времени. Пассив перфекта использует корень перфекта пассивного залога + особые окончания, похожие
+                    на окончания сокращенных глаголов в настоящем времени. θα(να) ανοίγομαι/θα(να) ανοιχτώ.
+                </p>
+                <h5>Future + Subjunctive - дополнение</h5>
+                <p>
+                    После θα/να можно поставить глагол в любом обычном времени (без θα/να). Такое выражение может выражать условие, сомнение, преположение и т.п. Принцип
+                    примерно такой: θα έγραφα (я бы писал), θα έγραψα (я бы написал), θα έχω γράψει (напишу к какому-то моменту), θα είχα γράψει (я бы написал к этому моменту).
+                </p>
+            </div>
+            </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                Склонения
+            </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+                
+            </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                Accordion Item #3
+            </button>
+            </h2>
+            <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+                <strong>This is the third item’s accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It’s also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+            </div>
+            </div>
+        </div>
+    </div>
+  </div>
+  <div class="tab-pane fade" id="other-tab-pane" role="tabpanel" aria-labelledby="other-tab" tabindex="0">TBD2</div>
+</div>
+
+</div>
+
+<script>
+  const { createApp, ref } = Vue
+
+  createApp({
+    setup() {
+      const message = ref('Hello vue!')
+      return {
+        message
+      }
+    }
+  }).mount('#app')
+</script>
