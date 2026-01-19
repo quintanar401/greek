@@ -97,7 +97,63 @@
             </h2>
             <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
             <div class="accordion-body">
-                
+            <div class="container-sm">
+                <form>
+                    <div class="row mb-3">
+                        <label for="inputVerb" class="col-sm-2 col-form-label">Глагол(анл/греч/рег выражение)</label>
+                        <div class="col-sm-5">
+                            <input v-model="verbInput" type="text" class="form-control" id="inputVerb">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label for="tense" class="col-sm-2 col-form-label">Время</label>
+                        <div class="col-sm-3">
+                            <select v-model="tenseInput" class="form-select" aria-label="Default select example">
+                                <option selected value="present">Present</option>
+                                <option value="aorist">Aorist</option>
+                                <option value="imperfect">Imperfect</option>
+                                <option value="future">Future</option>
+                                <option value="future_imperfect">Future imperfect</option>
+                            </select>
+                        </div>
+                    </div>
+                    <fieldset class="row mb-3">
+                        <legend class="col-form-label col-sm-2 pt-0">Залог</legend>
+                        <div class="col-sm-3">
+                            <div class="form-check">
+                                <input v-mode="voiceInput" class="form-check-input" type="radio" name="gridRadios" id="voice1" value="active" checked>
+                                <label class="form-check-label" for="voice1">
+                                    Active
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input v-mode="voiceInput" class="form-check-input" type="radio" name="gridRadios" id="voice2" value="passive">
+                                <label class="form-check-label" for="voice2">
+                                    Passive
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+                <button class="btn btn-primary" @click="vconj = calcConj(verbInput,tenseInput,voiceInput)">Вычислить</button>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                        <th scope="col">1s</th>
+                        <th scope="col">2s</th>
+                        <th scope="col">3s</th>
+                        <th scope="col">1p</th>
+                        <th scope="col">2p</th>
+                        <th scope="col">3p</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="verb in vconj">
+                            <td v-for="v in verb">{{v}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             </div>
             </div>
         </div>
@@ -121,13 +177,23 @@
 </div>
 
 <script>
+  function calcConj(v,tense,voice) {
+    let res = [];
+    for (x of veng) { if (x.match(v)) {let r = conj(x,tense,voice); if (r.length > 0) res.push(r)}}
+    for (x of vgrk) { if (x.match(v)) {let r = conj(x,tense,voice); if (r.length > 0) res.push(r)}}
+    return res
+  }
   const { createApp, ref } = Vue
 
   createApp({
     setup() {
       const message = ref('Hello vue!')
+      const vconj = ref([])
+      const verbInput = ref("")
+      const tenseInput = ref("present")
+      const voiceInput = ref("active")
       return {
-        message
+        message, vconj, calcConj, verbInput, tenseInput, voiceInput
       }
     }
   }).mount('#app')

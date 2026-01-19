@@ -199,7 +199,6 @@ conj = (v,tense,voice) => {
     let e = [];
     let vv = [];
     let part = "";
-    console.log(grk);console.log(vinfo);console.log(vconj);
     if (tense == "present") {if (isAct) {e = vconj["present"]; vv = [grk]} else {e = vconj["ppresent"]; vv = vinfo[5]}}
     if (tense == "imperfect") {if (isAct) {e = vconj["aorist"]; vv = vinfo[2]} else {e = vconj["pimperfect"]; vv = vinfo[6]}}
     if (tense == "aorist") {if (isAct) {e = vconj["aorist"]; vv = vinfo[4]} else {e = vconj["aorist"]; vv = vinfo[8]}}
@@ -210,6 +209,5 @@ conj = (v,tense,voice) => {
     vv = structuredClone(vv);
     if (e.length == 0) {return []}
     if (vv[0] == "--") {return []}
-    console.log(e); console.log(vv);
     return conjv(e,vv,part);
 };
