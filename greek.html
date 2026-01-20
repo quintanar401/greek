@@ -48,6 +48,10 @@
                     окончания имперфекта и условного наклонения. Некоторые такие глаголы окончательно сократились и форма с -άω не употребляется (κινώ). Такие глаголы в настоящем времени часто склоняются похоже
                     на обычные (προσπαθώ), но ударение ставится по прежнему на последний слог!
                 </p>
+                <h5>Средний (возвратный) залог</h5>
+                В греческом как в русском есть все три залога (активный, средний, пассивный), но средний практически не отличается от пассивного. Тем не менее необходимо знать, что он есть. Во-первых,
+                он таки отличается от пассивного в одном случае - императиве (κρατήσου vs να κρατηθείς - держись vs сдержись кем-то?). Во-вторых, некоторые глаголы не имеют активного/пассивного залога
+                (σκέφτομαι) или их значение в среднем существенно отличается (βρίσκομαι).
                 <h5>Present</h5>
                 <p>
                     Это базовая форма с имперфектным корнем: ανοίγ(ανοίγω). Используется для описания текущих и регулярных событий. Окончания: -ω -εις -ει -ουμε|ομε -ετε -ουν(ε) (обычные),
@@ -98,11 +102,11 @@
             <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
             <div class="accordion-body">
             <div class="container-sm">
-                <form>
+                <form @submit.prevent>
                     <div class="row mb-3">
-                        <label for="inputVerb" class="col-sm-2 col-form-label">Глагол(анл/греч/рег выражение)</label>
+                        <label for="inputVerb" class="col-sm-2 col-form-label">Глагол(англ/греч/рег выражение)</label>
                         <div class="col-sm-5">
-                            <input v-model="verbInput" type="text" class="form-control" id="inputVerb">
+                            <input v-model="verbInput" type="text" class="form-control" id="inputVerb" @keyup.enter='engTense = "eng"; vconj = calcConj(verbInput,tenseInput,voiceInput)'>
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -121,13 +125,13 @@
                         <legend class="col-form-label col-sm-2 pt-0">Залог</legend>
                         <div class="col-sm-3">
                             <div class="form-check">
-                                <input v-mode="voiceInput" class="form-check-input" type="radio" name="gridRadios" id="voice1" value="active" checked>
+                                <input class="form-check-input" type="radio" name="gridRadios" id="voice1" value="active" @input="event => voiceInput = event.target.value" checked>
                                 <label class="form-check-label" for="voice1">
                                     Active
                                 </label>
                             </div>
                             <div class="form-check">
-                                <input v-mode="voiceInput" class="form-check-input" type="radio" name="gridRadios" id="voice2" value="passive">
+                                <input class="form-check-input" type="radio" name="gridRadios" id="voice2" value="passive" @input="event => voiceInput = event.target.value">
                                 <label class="form-check-label" for="voice2">
                                     Passive
                                 </label>
@@ -135,10 +139,11 @@
                         </div>
                     </fieldset>
                 </form>
-                <button class="btn btn-primary" @click="vconj = calcConj(verbInput,tenseInput,voiceInput)">Вычислить</button>
+                <button class="btn btn-primary" @click='engTense = "eng"; vconj = calcConj(verbInput,tenseInput,voiceInput)'>Вычислить</button>
                 <table class="table table-striped">
                     <thead>
                         <tr>
+                        <th scope="col">{{engTense}}</th>
                         <th scope="col">1s</th>
                         <th scope="col">2s</th>
                         <th scope="col">3s</th>
@@ -149,7 +154,7 @@
                     </thead>
                     <tbody>
                         <tr v-for="verb in vconj">
-                            <td v-for="v in verb">{{v}}</td>
+                            <td v-for="v in verb">{{v}} <a href="#" v-if='v == verb[0] && engTense == "eng"' @click='engTense = "tense"; vconj = calcTenses(v)'>⏎</a></td>
                         </tr>
                     </tbody>
                 </table>
@@ -160,12 +165,63 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                Accordion Item #3
+                Тренировка
             </button>
             </h2>
             <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
             <div class="accordion-body">
-                <strong>This is the third item’s accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It’s also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+                <div class="container-sm">
+                <form @submit.prevent>
+                    <div class="row mb-3">
+                        <label for="trainTense" class="col-sm-2 col-form-label">Времена:</label>
+                        <div class="col-sm-5">
+                            <select class="form-select" multiple aria-label="trainTense" size="8">
+                                <option selected value="present active">Present</option>
+                                <option selected value="imperfect active">Imperfect</option>
+                                <option selected value="aorist active">Aorist</option>
+                                <option selected value="future active">Future</option>
+                                <option selected value="present passive">Present passive</option>
+                                <option selected value="imperfect passive">Imperfect passive</option>
+                                <option selected value="aorist passive">Aorist passive</option>
+                                <option selected value="future passive">Future passive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-5">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="trainEng">
+                            <label class="form-check-label" for="checkDefault">
+                                Показывать только английское слово
+                            </label>
+                        </div>
+                        </div>
+                    </div>
+                    <fieldset class="row mb-3">
+                        <legend class="col-form-label col-sm-2 pt-0">Включить глаголы:</legend>
+                        <div class="col-sm-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gridRadios2" id="verbs1" value="all" @input="event => inclVerbs = event.target.value" checked>
+                                <label class="form-check-label" for="verbs1">
+                                    Все
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gridRadios2" id="verbs2" value="some" @input="event => inclVerbs = event.target.value">
+                                <label class="form-check-label" for="verbs2">
+                                    Исключения и необычные
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gridRadios2" id="verbs3" value="irr" @input="event => inclVerbs = event.target.value">
+                                <label class="form-check-label" for="verbs3">
+                                    Только исключения
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+                </div>
             </div>
             </div>
         </div>
@@ -179,9 +235,16 @@
 <script>
   function calcConj(v,tense,voice) {
     let res = [];
-    for (x of veng) { if (x.match(v)) {let r = conj(x,tense,voice); if (r.length > 0) res.push(r)}}
-    for (x of vgrk) { if (x.match(v)) {let r = conj(x,tense,voice); if (r.length > 0) res.push(r)}}
+    for (let x of veng) { if (x.match(v)) {let r = [x].concat(conj(x,tense,voice)); if (r.length > 1) res.push(r)}}
+    if (v.length > 0) {for (x in vgrk) { if (vgrk[x].match(v)) {let r = veng[x].concat(conj(vgrk[x],tense,voice)); if (r.length > 1) res.push(r)}}}
     return res
+  }
+  function calcTenses(v) {
+    let t = ["present","imperfect","aorist","future","future_imperfect"];
+    let res = [];
+    for (let x of t) {let r = conj(v,x,"active"); if (r.length > 0) {res.push([x].concat(r))}}
+    for (let x of t) {let r = conj(v,x,"passive"); if (r.length > 0) {res.push([x.concat(" passive")].concat(r))}}
+    return res;
   }
   const { createApp, ref } = Vue
 
@@ -192,8 +255,9 @@
       const verbInput = ref("")
       const tenseInput = ref("present")
       const voiceInput = ref("active")
+      const engTense = ref("eng")
       return {
-        message, vconj, calcConj, verbInput, tenseInput, voiceInput
+        message, vconj, calcConj, calcTenses, verbInput, tenseInput, voiceInput, engTense
       }
     }
   }).mount('#app')
