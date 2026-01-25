@@ -361,17 +361,19 @@ verbs = [
 vexc = ["αφήνω","συνδέω","αποκλείω","ακούω","ανοίγω","ψάχνω","υπάρχω","ανάβω","επιτρέπω","αποκαλύπτω","επιστρέφω","κάνω","σημαίνω", "αναφέρω", "μένω", "πεθαίνω", "παθαίνω", "αρέσω", "αντιδράω", "πετάω", "φοράω", "invite", "call",
     "παρακαλώ", "ζω", "θυμάμαι", "αρνιέμαι", "εύχομαι", "σκέφτομαι", "γίνομαι", "εκτιμάω"];
 virr = ["κόβω","έχω","παίρνω","δίνω","θέλω","φέρνω", "λαμβάνω", "βρίσκω", "ξέρω", "βάζω", "βγάζω", "μπαίνω", "βγαίνω", "πέφτω", "προτείνω", "στέλνω", "φεύγω", "μαθαίνω", "βάλλω", "πίνω", "τυχαίνω", "έρχομαι", "στέκομαι", "φαίνομαι",
-    "είμαι", "λέω", "βλέπω", "πάω", "τρώω", "θέτω"];
+    "είμαι", "λέω", "βλέπω", "πηγαίνω", "τρώω", "θέτω"];
+vexc = vexc.concat(virr);
 
 veng = [];
+vgrp = [];
 vgrk = [];
 vforms = [];
 
 procGrk = (v) => {if (v[1] == "--") {let x = v[5].split("|"); vgrk.push(x[0])} else {vgrk.push(v[1])}}
 procFormE = (vr,e) => { let ee = e.split("|"); let res = []; for (let x of ee) {if (x[0] == "~") {res.push(vr[0].concat(x.substr(1)))} else {res.push(vr[1].concat(x.substr(1)))}}; return res};
 procFormV = (ix,e,v) => {let form = [v[0]]; let vr = [v[1].substr(0,1 + v[1].length - e[0].length), v[2]]; for (let x of e) {form.push(procFormE(vr, x))}; vforms.push([ix,form])};
-procFormObj = (ix,o) => {for (let x of Object.keys(o)) {let e = x.split(" "); for (let v of o[x]) {let vv  = v.split(" "); veng.push(vv[0]); procGrk(vv); procFormV(ix,e,vv)}}};
-procFormStr= (ix,o) => {let v = o.split(" "); veng.push(v[0]); procGrk(v); let res = [v[0]]; for (let x in v) {if (x > 0) {res.push(v[x].split("|"))}}; vforms.push([ix,res])};
+procFormObj = (ix,o) => {for (let x of Object.keys(o)) {let grp = []; let e = x.split(" "); for (let v of o[x]) {let vv  = v.split(" "); veng.push(vv[0]); grp.push(vv[0]); procGrk(vv); procFormV(ix,e,vv)}; vgrp.push(grp)}};
+procFormStr= (ix,o) => {let v = o.split(" "); veng.push(v[0]); vgrp.push(v[0]); procGrk(v); let res = [v[0]]; for (let x in v) {if (x > 0) {res.push(v[x].split("|"))}}; vforms.push([ix,res])};
 procForms = () => {for (let x in verbs) {for (let y of verbs[x]["forms"]) {if (typeof y == "object") {procFormObj(x,y)} else {procFormStr(x,y)}}}};
 procForms();
 
@@ -408,3 +410,14 @@ conj = (v,tense,voice) => {
     }
     return res;
 };
+
+vscore = [];
+vbase = [];
+vcnt = 0;
+vstartTrain = (ty, tns) => {vbase = []; vscore = []; let b = []; if (ty == "irr") {b = virr}; if (ty == "some") {b = vexc}; if (ty == "all") {b = vgrp};
+    for (let x of b) {for (y of tns) {vbase.push([x,y.split("_")]); vscore.push(1)}}; vcnt = vbase.length};
+vnextV = (n) => {let v = vbase[n][0]; if (typeof v !== "string") {v = v[Math.floor(v.lenght*Math.random())]}; let i = veng.indexOf(v); if (i < 0) {i = vgrk.indexOf(v)};
+    return { id: n, eng: veng[i], grk: vgrk[i], total: vbase.length, curr: vcnt, data: conj(v,vbase[n][1][0],vbase[n][1][1]), tense: vbase[n][1].join(" "), step: 0}};
+vnextRnd = () => {let n = 0; if (vcnt == 0) {return {data:[], curr:0}}; if (vcnt > 1) {n = Math.floor(vcnt*Math.random())};
+    for (let x=0; x < vbase.length; x++) {if (vscore[x] > 0) {if (n == 0) {return vnextV(x)} else {n = n - 1}}}};
+vnext = (n,isSuc) => {if (n >=0) {if (isSuc) {vscore[n] = vscore[n] - 1; if (vscore[n] == 0) {vcnt = vcnt - 1}} else {if (vscore[n] < 5) {vscore[n] = 2*vscore[n]}}}; return vnextRnd()}

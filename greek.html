@@ -2,6 +2,7 @@
 
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 <script src="verb.js"></script>
+<script src="noun.js"></script>
 
 <head>
     <meta charset="utf-8">
@@ -25,7 +26,35 @@
   </li>
 </ul>
 <div class="tab-content" id="myTabContent">
-  <div class="tab-pane fade show active" id="noun-tab-pane" role="tabpanel" aria-labelledby="noun-tab" tabindex="0">TBD</div>
+  <div class="tab-pane fade show active" id="noun-tab-pane" role="tabpanel" aria-labelledby="noun-tab" tabindex="0">
+    <div class="container-sm">
+        <div class="row mb-3">
+            <p v-if="!helpCheck">
+                Вам будет показно существительное и его перевод. Назовите все 6/8 склонений (именительный, родительный, винительный и звательный падежи + единств/множ время), представьте
+                их написание и убедитесь, что все буквы (особенно "и" и "о") правильные. Кликните на существительное. Вы увидите правильные склонения. Если вы считаете, что правы кликните
+                левой кнопкой на существительном. Если нет, то правой. Каждое существительное будет показано один раз по умолчанию. В случае ошибки, число показов удваивается.
+            </p>
+        </div>
+        <div><button class="btn btn-primary" @click='startNTrain()'>Старт/рестарт</button></div>
+        <div class="row mb-3">
+            <div class="col-sm" @click.prevent.stop="(e) => ntrainNext(e,true)" @contextmenu.prevent.stop="(e) => ntrainNext(e,false)">
+            <div style="padding-top: 15px;" v-if='ntrData.grk != ""'>
+                <span style="font-size: x-large;" class="user-select-none">{{ntrData.eng}}</span><span class="user-select-none" style="font-size: x-large;" v-if='true'>/{{ntrData.grk}}:</span>
+                <span style="padding-left: 15px;" v-if='ntrData.step > 0'>{{ntrData.data.join(", ")}}</span>
+            </div>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm">
+            <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" :style="{width: Math.round(100*(ntrData.total-ntrData.curr)/ntrData.total) + '%'}" :class="{'text-bg-success': lastV, 'text-bg-danger': !nlastV}">
+                    {{ntrData.total-ntrData.curr}}/{{ntrData.total}}
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+  </div>
   <div class="tab-pane fade" id="verb-tab-pane" role="tabpanel" aria-labelledby="verb-tab" tabindex="0"> 
     <div class="accordion" id="accordionExample">
         <div class="accordion-item">
@@ -208,32 +237,32 @@
                     <div class="row mb-3">
                         <label for="trainTense" class="col-sm-2 col-form-label">Времена:</label>
                         <div class="col-sm-3">
-                            <select class="form-select" multiple aria-label="trainTense" size="8">
-                                <option selected value="present active">Present</option>
-                                <option selected value="imperfect active">Imperfect</option>
-                                <option selected value="aorist active">Aorist</option>
-                                <option selected value="future active">Future</option>
-                                <option selected value="present passive">Present passive</option>
-                                <option selected value="imperfect passive">Imperfect passive</option>
-                                <option selected value="aorist passive">Aorist passive</option>
-                                <option selected value="future passive">Future passive</option>
+                            <select class="form-select" multiple aria-label="trainTense" size="8" v-model="trTenses">
+                                <option selected value="present_active">Present</option>
+                                <option selected value="imperfect_active">Imperfect</option>
+                                <option selected value="aorist_active">Aorist</option>
+                                <option selected value="future_active">Future</option>
+                                <option selected value="present_passive">Present passive</option>
+                                <option selected value="imperfect_passive">Imperfect passive</option>
+                                <option selected value="aorist_passive">Aorist passive</option>
+                                <option selected value="future_passive">Future passive</option>
                             </select>
                         </div>
-                        <div class="col-sm">
-                            Рекомендуется тренировать все времена сразу, поскольку реально они отличаются только в трех базовых корнях. Все остальное - это сдвиг ударения и немногочисленные окончания.
+                        <div class="col-sm" v-if="!helpCheck">
+                            Рекомендуется тренировать все времена, поскольку реально они отличаются только в трех базовых корнях. Все остальное - это сдвиг ударения и немногочисленные окончания.
                             Сложные перфектные времена, условное наклонение и т.п. не добавлены, поскольку они строятся по очень простым правилам из этих времен.
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-sm-5">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="trainEng">
+                            <input class="form-check-input" type="checkbox" value="" id="trainEng" v-model="trEng">
                             <label class="form-check-label" for="checkDefault">
                                 Показывать только английское слово
                             </label>
                         </div>
                         </div>
-                        <div class="col-sm">
+                        <div class="col-sm" v-if="!helpCheck">
                             Если слово не на греческом, то нужно вспомнить его греческий аналог и написание.
                         </div>
                     </div>
@@ -241,36 +270,55 @@
                         <legend class="col-form-label col-sm-2 pt-0">Включить глаголы:</legend>
                         <div class="col-sm-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="gridRadios2" id="verbs1" value="all" @input="event => inclVerbs = event.target.value" checked>
+                                <input class="form-check-input" type="radio" name="gridRadios2" id="verbs1" value="all" @input="event => trVerbs = event.target.value" :checked="trVerbs == 'all'">
                                 <label class="form-check-label" for="verbs1">
                                     Все
                                 </label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="gridRadios2" id="verbs2" value="some" @input="event => inclVerbs = event.target.value">
+                                <input class="form-check-input" type="radio" name="gridRadios2" id="verbs2" value="some" @input="event => trVerbs = event.target.value" :checked="trVerbs == 'some'">
                                 <label class="form-check-label" for="verbs2">
                                     Исключения и необычные
                                 </label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="gridRadios2" id="verbs3" value="irr" @input="event => inclVerbs = event.target.value">
+                                <input class="form-check-input" type="radio" name="gridRadios2" id="verbs3" value="irr" @input="event => trVerbs = event.target.value" :checked="trVerbs == 'irr'">
                                 <label class="form-check-label" for="verbs3">
                                     Только исключения
                                 </label>
                             </div>
                         </div>
-                        <div class="col-sm">Начните с исключений и двигайтесь вверх. В исключения входят совсем неправильные глаголы. В необычные входят многие возвратные и те,
+                        <div class="col-sm" v-if="!helpCheck">Начните с исключений и двигайтесь вверх. В исключения входят совсем неправильные глаголы. В необычные входят многие возвратные и те,
                             которые меняются необычно хотя бы в одном времени.</div>
                     </fieldset>
                 </form>
                 <div class="row mb-3">
-                    <p>
+                    <p v-if="!helpCheck">
                         Вам будет показан глагол в первом лице настоящего времени или его перевод и время, в котором его нужно проспрягать. Назовите все 6 форм, представьте их написание и убедитесь,
                         что все буквы (особенно "и" и "о") правильные. Глаголы могут иметь несколько вариантов, я думаю необязательно называть их все - решайте сами. Кликните на глагол. Вы увидите
                         правильные спряжения. Если вы считаете, что правы кликните левой кнопкой на глаголе. Если нет, то правой. Каждый глагол+время будут показаны один раз по умолчанию. В случае ошибки,
                         число показов удваивается. Я не прошу вводить глаголы для проверки, поскольку спряжения - это очень механический навык, который лучше тренировать показом как можно большего
                         числа вариантов за единицу времени. Проверить в уме в разы быстрее, чем писать/вводить. Совсем стандартные глаголы будут показываться случайно - один из группы.
                     </p>
+                </div>
+                <button class="btn btn-primary" @click='startVTrain(trTenses,trEng,trVerbs)'>Старт/рестарт</button>
+                <div class="row mb-3">
+                    <div class="col-sm" @click.prevent.stop="(e) => vtrainNext(e,true)" @contextmenu.prevent.stop="(e) => vtrainNext(e,false)">
+                    <div style="padding-top: 15px;" v-if='vtrData.grk != ""'>
+                        <span style="font-size: x-large;" class="user-select-none">{{vtrData.eng}}</span><span class="user-select-none" style="font-size: x-large;" v-if='!trEng'>/{{vtrData.grk}}</span>
+                        <span class="user-select-none" style="font-size: x-large;"> in {{vtrData.tense}}:</span>
+                        <span style="padding-left: 15px;" v-if='vtrData.step > 0'>{{vtrData.data.join(", ")}}</span>
+                    </div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm">
+                    <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" :style="{width: Math.round(100*(vtrData.total-vtrData.curr)/vtrData.total) + '%'}" :class="{'text-bg-success': lastV, 'text-bg-danger': !lastV}">
+                            {{vtrData.total-vtrData.curr}}/{{vtrData.total}}
+                        </div>
+                    </div>
+                    </div>
                 </div>
                 </div>
             </div>
@@ -280,6 +328,20 @@
   </div>
   <div class="tab-pane fade" id="other-tab-pane" role="tabpanel" aria-labelledby="other-tab" tabindex="0">TBD2</div>
 </div>
+
+<nav class="navbar fixed-bottom bg-body-tertiary">
+  <div class="container-fluid">
+    <a></a>
+    <form class="d-flex">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="helpCheck" v-model="helpCheck">
+            <label class="form-check-label" for="checkDefault">
+                убрать помощь
+            </label>
+        </div>
+    </form>
+  </div>
+</nav>
 
 </div>
 
@@ -306,6 +368,28 @@
   //tr2gr = (x) => {let res = ""; for (let l of x) { res = res + trMapG[trMapE.indexOf(l)]}; if (res[res.length-1] == "σ") {res = res.slice(0,res.length-1); return res + "ς"}; return res}
   const { createApp, ref } = Vue
 
+  saveState = () => {
+    localStorage.setItem("vscore",vscore);
+    localStorage.setItem("vcnt",vcnt);
+    localStorage.setItem("nscore",nscore);
+    localStorage.setItem("ncnt",ncnt);
+  }
+  loadState = (trVerbs,trTenses) => {
+    vcnt = localStorage.getItem("vcnt");
+    if (vcnt > 0) {
+        vstartTrain(trVerbs,trTenses);
+        vcnt = localStorage.getItem("vcnt");
+        vscore = localStorage.getItem("vscore").split(",").map(x => parseInt(x));
+    }
+    ncnt = localStorage.getItem("ncnt");
+    if (ncnt > 0) {
+        nstartTrain();
+        ncnt = localStorage.getItem("ncnt");
+        nscore = localStorage.getItem("nscore").split(",").map(x => parseInt(x));
+    }
+    return [vcnt>0,ncnt>0]
+  }
+
   createApp({
     setup() {
       const message = ref('Hello vue!')
@@ -314,8 +398,75 @@
       const tenseInput = ref("present")
       const voiceInput = ref("active")
       const engTense = ref("eng")
+      const trVerbs = ref("all")
+      const trEng = ref(false)
+      const helpCheck = ref(false)
+      const lastV = ref(true)
+      const nlastV = ref(true)
+      const trTenses = ref(["present_active","imperfect_active","aorist_active","future_active","present_passive","imperfect_passive","aorist_passive","future_passive"])
+      const vtrData = ref({eng: "", grk: "", total: 1, curr: 1, id: -1})
+      const ntrData = ref({eng: "", grk: "", total: 1, curr: 1, id: -1})
+      let vtrDataState = {tenses: trTenses.value.join(" "), verbs: "all"}
+      function startVTrain(trTenses,trEng,trVerbs) {
+        vstartTrain(trVerbs,trTenses);
+        vtrDataState = {tenses: trTenses.join(" "), eng: trEng, verbs: trVerbs}
+        let d = {data: [], id: -1};
+        while (d.data.length == 0) {d = vnext(d.id,true)};
+        vtrData.value = d;
+      }
+      function vtrainNext(event,isSucc) {
+        lastV.value = isSucc;
+        if (vtrData.value.step == 0) {vtrData.value.step = 1; return}
+        if (vtrData.value.curr == 0) {return}
+        let d = vnext(vtrData.value.id,isSucc);
+        console.log(d);
+        while (d.data.length == 0) {
+            if (d.curr == 0) {vtrData.value.curr = 0; return}
+            d = vnext(d.id,true)
+        };
+        vtrData.value = d;
+        saveStateVue();
+      }
+      function startNTrain() {
+        nstartTrain();
+        ntrData.value = nnext(-1,true);
+      }
+      function ntrainNext(event,isSucc) {
+        nlastV.value = isSucc;
+        if (ntrData.value.step == 0) {ntrData.value.step = 1; return}
+        if (ntrData.value.curr == 0) {return}
+        ntrData.value = nnext(ntrData.value.id,isSucc);
+        saveStateVue();
+      }
+      function saveStateVue() {
+        saveState();
+        localStorage.setItem("helpCheck",helpCheck.value);
+        localStorage.setItem("vtr_tenses",vtrDataState.tenses);
+        localStorage.setItem("vtr_eng",trEng.value);
+        localStorage.setItem("vtr_verbs",vtrDataState.verbs);
+      }
+      function loadStateVue() {
+        let v = localStorage.getItem("helpCheck");
+        if (v) {
+            helpCheck.value = v == "true";
+            vtrDataState.tenses = localStorage.getItem("vtr_tenses");
+            vtrDataState.verbs = localStorage.getItem("vtr_verbs");
+            trEng.value = localStorage.getItem("vtr_eng") == "true";
+            trTenses.value = vtrDataState.tenses.split(" ");
+            trVerbs.value = vtrDataState.verbs;
+            let st = loadState(trVerbs.value,trTenses.value);
+            if (st[0]) {
+                let d = {data: [], id: -1};
+                while (d.data.length == 0) {d = vnext(d.id,true)};
+                vtrData.value = d;
+            };
+            if (st[1]) {ntrData.value = nnext(-1,true)}
+        }
+      }
+      loadStateVue()
       return {
-        message, vconj, calcConj, calcTenses, verbInput, tenseInput, voiceInput, engTense
+        message, vconj, calcConj, calcTenses, verbInput, tenseInput, voiceInput, engTense, trVerbs, trEng, trTenses, startVTrain, startNTrain,
+        vtrData, vnext, helpCheck, vtrainNext, ntrainNext, lastV, ntrData, nlastV
       }
     }
   }).mount('#app')
