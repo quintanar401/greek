@@ -1,5 +1,5 @@
 artsm = ["o", "του", "τον", "", "οι", "των", "τους", ""];
-artsf = ["η", "της", "την", "", "οι", "των", "τις", ""];
+artsf = ["η", "της", "τη(ν)", "", "οι", "των", "τις", ""];
 artsn = ["το", "του", "το", "", "τα", "των", "τα", ""];
 nouns = [
     {
@@ -29,7 +29,7 @@ nouns = [
     {
         "group": "Masculine -ης 1",
         "art": artsm,
-        "endings": ["ης","η","η","η","ες","ών","ες","ες"],
+        "endings": ["ης","η","η","η","ες","ών2","ες","ες"],
         "nouns": ["client πελάτης|πελατών"]
     },
     {
@@ -78,7 +78,7 @@ nouns = [
         "group": "Masculine -έας",
         "art": artsm,
         "endings": ["έας","έα","έα","έα","είς","έων","είς","είς"],
-        "nouns": ["secretary γραμματέας"]
+        "nouns": ["secretary(m) γραμματέας"]
     },
     {
         "group": "Masculine -ους",
@@ -89,7 +89,7 @@ nouns = [
     {
         "group": "Masculine -ούς",
         "art": artsm,
-        "endings": ["ούς","ού","ού","ού","ύδες","ύδων","ύδες","ύδες"],
+        "endings": ["ούς","ού","ού","ού","ούδες","ούδων","ούδες","ούδες"],
         "nouns": ["grandpa παππούς"]
     },
     {
@@ -161,14 +161,14 @@ nouns = [
     {
         "group": "Feminine -ού",
         "art": artsf,
-        "endings": ["ού","ούς","ού","ού","ούδες","ύδων","ούδες","ούδες"],
+        "endings": ["ού","ούς","ού","ού","ούδες","ούδων","ούδες","ούδες"],
         "nouns": ["fox αλεπού"]
     },
     {
         "group": "Feminine -έας",
         "art": artsf,
         "endings": ["έας","έως","έα","έα","είς","έων","είς","είς"],
-        "nouns": ["secretary γραμματέας"]
+        "nouns": ["secretary(f) γραμματέας"]
     },
     {
         "group": "Feminine -ίας",
@@ -198,19 +198,19 @@ nouns = [
         "group": "Neuter -ι",
         "art": artsn,
         "endings": ["ι","ιού2","ι","ι","ια","ιών2","ια","ια"],
-        "nouns": ["house σπίτι"]
+        "nouns": ["house σπίτι|σπιτιών"]
     },
     {
         "group": "Neuter -α 1",
         "art": artsn,
         "endings": ["α","ατος2","α","α","ατα2","άτων3","ατα2","ατα2"],
-        "nouns": ["theme θέμα","problem πρόβλημα|προβλήματος|προβλημάτων"]
+        "nouns": ["theme θέμα|θέμα|θεμάτων","problem πρόβλημα|προβλήματος|προβλημάτων"]
     },
     {
         "group": "Neuter -α 2",
         "art": artsn,
         "endings": ["α","ακτος","α","α","ατα","άκτων2","ατα","ατα"],
-        "nouns": ["milk γάλα"]
+        "nouns": ["milk γάλα|γαλάκτων"]
     },
     {
         "group": "Neuter -ος 1",
@@ -246,7 +246,7 @@ nouns = [
         "group": "Neuter -ας",
         "art": artsn,
         "endings": ["ας","ατος","ας","ας","ατα","άτων2","ατα","ατα"],
-        "nouns": ["meat κρέας"]
+        "nouns": ["meat κρέας|κρεάτων"]
     },
     {
         "group": "Neuter -ως 1",
@@ -306,9 +306,11 @@ nouns = [
 
 nbase = [];
 nprocN = (g,e,n) => {let end = g["endings"]; let b = n[0].substr(0,n[0].length - end[0].length); let res = []; for (let i = 0; i < end.length; i++) {let a = end[i]; let nn = b;
-    if (a.endsWith("2") && n[1].endsWith(a.substr(0,a.length-1))) {n[1] = n[1].substr(0,n[1].length - a.length - 1)}; if (a.endsWith("2")) {nn = nn + a.substr(0,a.length-1)} else {nn = nn + a};
+    if (a.endsWith("2") && n[1].endsWith(a.substr(0,a.length-1))) {n[1] = n[1].substr(0,n[1].length - (a.length - 1)); nn = n[1]};
+    if (a.endsWith("3") && n[2].endsWith(a.substr(0,a.length-1))) {n[2] = n[2].substr(0,n[2].length - (a.length - 1)); nn = n[2]};
+    if (a.endsWith("2") || a.endsWith("3")) {nn = nn + a.substr(0,a.length-1)} else {nn = nn + a};
     if (g["art"][i].length > 0) {nn = g["art"][i]+" "+nn}; res.push(nn)}; return [e,n[0],res]}
-nprocItem = (n) => {for (let x of n["nouns"]) {let ne = x.split(" "); let nn = ne[1].split("|"); if (nn.length == 1) {nn.push(nn[0])}; return nprocN(n,ne[0],nn)}}
+nprocItem = (n) => {for (let x of n["nouns"]) {let ne = x.split(" "); let nn = ne[1].split("|"); if (nn.length == 1) {nn.push(nn[0])}; if (nn.length == 2) {nn.push(nn[1])}; return nprocN(n,ne[0],nn)}}
 for (let x of nouns) {nbase.push(nprocItem(x))}
 
 nscore = [];

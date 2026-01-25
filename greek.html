@@ -30,17 +30,19 @@
     <div class="container-sm">
         <div class="row mb-3">
             <p v-if="!helpCheck">
-                Вам будет показно существительное и его перевод. Назовите все 6/8 склонений (именительный, родительный, винительный и звательный падежи + единств/множ время), представьте
+                Вам будет показно существительное и его перевод. Назовите все 8 склонений (именительный, родительный, винительный и звательный падежи + единств/множ время), представьте
                 их написание и убедитесь, что все буквы (особенно "и" и "о") правильные. Кликните на существительное. Вы увидите правильные склонения. Если вы считаете, что правы кликните
-                левой кнопкой на существительном. Если нет, то правой. Каждое существительное будет показано один раз по умолчанию. В случае ошибки, число показов удваивается.
+                левой кнопкой на существительном. Если нет, то правой. Каждое существительное будет показано один раз по умолчанию. В случае ошибки, число показов удваивается. Кликните на
+                check one, чтобы открыть только одно склонение в порядке, указанном выше.
             </p>
         </div>
         <div><button class="btn btn-primary" @click='startNTrain()'>Старт/рестарт</button></div>
         <div class="row mb-3">
-            <div class="col-sm" @click.prevent.stop="(e) => ntrainNext(e,true)" @contextmenu.prevent.stop="(e) => ntrainNext(e,false)">
+            <div class="col-sm">
             <div style="padding-top: 15px;" v-if='ntrData.grk != ""'>
-                <span style="font-size: x-large;" class="user-select-none">{{ntrData.eng}}</span><span class="user-select-none" style="font-size: x-large;" v-if='true'>/{{ntrData.grk}}:</span>
-                <span style="padding-left: 15px;" v-if='ntrData.step > 0'>{{ntrData.data.join(", ")}}</span>
+                <span @click.prevent.stop="(e) => ntrainNext(e,true)" @contextmenu.prevent.stop="(e) => ntrainNext(e,false)" style="font-size: x-large;" class="user-select-none">{{ntrData.eng}}/{{ntrData.grk}}:</span>
+                <span style="padding-left: 15px;" v-if="ntrData.step > 0"> {{ntrData.data.slice(0,ntrData.step).join(", ")}}</span>
+                <span style="padding-left: 15px;" v-if="8 > ntrData.step" @click.prevent.stop="ntrData.step = ntrData.step + 1">check one</span>
             </div>
             </div>
         </div>
@@ -415,17 +417,16 @@
         vtrData.value = d;
       }
       function vtrainNext(event,isSucc) {
-        lastV.value = isSucc;
         if (vtrData.value.step == 0) {vtrData.value.step = 1; return}
+        lastV.value = isSucc;
         if (vtrData.value.curr == 0) {return}
         let d = vnext(vtrData.value.id,isSucc);
-        console.log(d);
+        saveStateVue();
         while (d.data.length == 0) {
             if (d.curr == 0) {vtrData.value.curr = 0; return}
             d = vnext(d.id,true)
         };
         vtrData.value = d;
-        saveStateVue();
       }
       function startNTrain() {
         nstartTrain();
@@ -433,10 +434,12 @@
       }
       function ntrainNext(event,isSucc) {
         nlastV.value = isSucc;
-        if (ntrData.value.step == 0) {ntrData.value.step = 1; return}
+        if (ntrData.value.step == 0) {ntrData.value.step = 8; return}
         if (ntrData.value.curr == 0) {return}
-        ntrData.value = nnext(ntrData.value.id,isSucc);
+        let d = nnext(ntrData.value.id,isSucc);
         saveStateVue();
+        if (d.curr == 0) {ntrData.value.curr = 0; return}
+        ntrData.value = d;
       }
       function saveStateVue() {
         saveState();
