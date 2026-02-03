@@ -3,6 +3,7 @@
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 <script src="verb.js"></script>
 <script src="noun.js"></script>
+<script src="words.js"></script>
 
 <head>
     <meta charset="utf-8">
@@ -22,7 +23,7 @@
     <button class="nav-link" id="verb-tab" data-bs-toggle="tab" data-bs-target="#verb-tab-pane" type="button" role="tab" aria-controls="verb-tab-pane" aria-selected="false">Глаголы</button>
   </li>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="other-tab" data-bs-toggle="tab" data-bs-target="#other-tab-pane" type="button" role="tab" aria-controls="other-tab-pane" aria-selected="false">Other</button>
+    <button class="nav-link" id="other-tab" data-bs-toggle="tab" data-bs-target="#other-tab-pane" type="button" role="tab" aria-controls="other-tab-pane" aria-selected="false">Слова</button>
   </li>
 </ul>
 <div class="tab-content" id="myTabContent">
@@ -62,7 +63,7 @@
         <div class="accordion-item">
             <h2 class="accordion-header">
             <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                General information
+                Справка
             </button>
             </h2>
             <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
@@ -328,7 +329,67 @@
         </div>
     </div>
   </div>
-  <div class="tab-pane fade" id="other-tab-pane" role="tabpanel" aria-labelledby="other-tab" tabindex="0">TBD2</div>
+  <div class="tab-pane fade" id="other-tab-pane" role="tabpanel" aria-labelledby="other-tab" tabindex="0">
+    <div class="container-sm">
+        <div class="row mb-3">
+            <p v-if="!helpCheck">
+                Тренировка перевода русский-греческий и обратно. Можно выбрать часть речи, уровень.
+            </p>
+        </div>
+        <form @submit.prevent>
+            <div class="row mb-3">
+                <div class="col-sm-5">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="wordRus" v-model="wordRus">
+                    <label class="form-check-label" for="checkDefault">
+                        <span v-if="wordRus">с русского на греческий</span><span v-if="!wordRus">с греческого на русский</span>
+                    </label>
+                </div>
+                </div>
+                <div class="col-sm" v-if="!helpCheck">
+                    
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label for="wordSelect" class="col-sm-2 col-form-label">Части речи:</label>
+                <div class="col-sm-3">
+                    <select class="form-select" multiple aria-label="wordSelect" size="4" v-model="wordSelect">
+                        <option selected value="noun">Существительные</option>
+                        <option selected value="adj">Прилагательные</option>
+                        <option selected value="verb">Глаголы</option>
+                        <option selected value="">Остальные</option>
+                    </select>
+                </div>
+                <div class="col-sm" v-if="!helpCheck">
+                    Имеет смысл отдельно тренировать категорию Остальные, поскольку она включает очень нужные, но трудно запоминаемые слова
+                </div>
+            </div>
+        </form>
+        <div><button class="btn btn-primary" @click='startWTrain(wordSelect)'>Старт/рестарт</button></div>
+        <div class="row mb-3">
+            <div class="col-sm">
+            <div style="padding-top: 15px;" v-if='wtrData.grk != ""'>
+                <span @click.prevent.stop="(e) => wtrainNext(e,true)" @contextmenu.prevent.stop="(e) => wtrainNext(e,false)" style="font-size: x-large;" class="user-select-none">{{ wordRus ? wtrData.eng : wtrData.grk }}</span>
+            </div>
+            </div>
+        </div>
+        <div v-for="exa in wtrData.data.exa" class="row mb-3">
+            <div class="col-sm">{{exa[wordRus ? 1 : 0]}}</div>
+        </div>
+        <div class="row mb-3">
+            <div v-if="wtrData.step > 0" class="col-sm">{{ wordRus ? wtrData.grk : wtrData.eng }}</div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm">
+            <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" :style="{width: Math.round(100*(wtrData.total-wtrData.curr)/wtrData.total) + '%'}" :class="{'text-bg-success': lastV, 'text-bg-danger': !nlastV}">
+                    {{wtrData.total-wtrData.curr}}/{{wtrData.total}}
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+  </div>
 </div>
 
 <nav class="navbar fixed-bottom bg-body-tertiary">
@@ -348,6 +409,15 @@
 </div>
 
 <script>
+  wbase = [];
+  wscore = [];
+  wcnt = 0;
+  wstartTrain = (cat) => {wbase = []; wscore = []; for (let x of words) {if (cat.indexOf(x.pos) >= 0)  {wscore.push(1); wbase.push(x)}}; wcnt = wbase.length};
+  wnextN = (n) => {let word = wbase[n]; return { id: n, eng: word.rus, grk: word.greek, total: wbase.length, curr: wcnt, data: word, step: 0}};
+  wnextRnd = () => {let n = 0; if (wcnt == 0) {return {data:[], curr:0}}; if (wcnt > 1) {n = Math.floor(wcnt*Math.random())};
+    for (let x=0; x < wbase.length; x++) {if (wscore[x] > 0) {if (n == 0) {return wnextN(x)} else {n = n - 1}}}};
+  wnext = (n,isSuc) => {if (n >=0) {if (isSuc) {wscore[n] = wscore[n] - 1; if (wscore[n] == 0) {wcnt = wcnt - 1}} else {if (wscore[n] < 5) {wscore[n] = 2*wscore[n]}}}; return wnextRnd()}
+
   function calcConj(v,tense,voice) {
     let res = [];
     for (let x in vgrk) { if (vgrk[x].match(v)) {let r = [veng[x]].concat(conj(vgrk[x],tense,voice)); if (r.length > 1) res.push(r)}}
@@ -375,6 +445,8 @@
     localStorage.setItem("vcnt",vcnt);
     localStorage.setItem("nscore",nscore);
     localStorage.setItem("ncnt",ncnt);
+    localStorage.setItem("wscore",wscore);
+    localStorage.setItem("wcnt",wcnt);
   }
   loadState = (trVerbs,trTenses) => {
     vcnt = localStorage.getItem("vcnt");
@@ -389,7 +461,14 @@
         ncnt = localStorage.getItem("ncnt");
         nscore = localStorage.getItem("nscore").split(",").map(x => parseInt(x));
     }
-    return [vcnt>0,ncnt>0]
+    wcnt = localStorage.getItem("wcnt");
+    if (wcnt > 0) {
+        let cat = localStorage.getItem("w_sel").split(" ");
+        wstartTrain(cat);
+        wcnt = localStorage.getItem("wcnt");
+        wscore = localStorage.getItem("wscore").split(",").map(x => parseInt(x));
+    }
+    return [vcnt>0,ncnt>0,wcnt>0]
   }
 
   createApp({
@@ -405,10 +484,15 @@
       const helpCheck = ref(false)
       const lastV = ref(true)
       const nlastV = ref(true)
+      const wlastV = ref(true)
       const trTenses = ref(["present_active","imperfect_active","aorist_active","future_active","present_passive","imperfect_passive","aorist_passive","future_passive"])
       const vtrData = ref({eng: "", grk: "", total: 1, curr: 1, id: -1})
       const ntrData = ref({eng: "", grk: "", total: 1, curr: 1, id: -1})
-      let vtrDataState = {tenses: trTenses.value.join(" "), verbs: "all"}
+      const wtrData = ref({eng: "", grk: "", total: 1, curr: 1, id: -1, data: {exa: []}})
+      const wordRus = ref(false);
+      const wordSelect = ref(["noun","adj","verb",""]);
+      let vtrDataState = {tenses: trTenses.value.join(" "), verbs: "all"};
+      let wtrDataState = wordSelect.value.join(" ");
       function startVTrain(trTenses,trEng,trVerbs) {
         vstartTrain(trVerbs,trTenses);
         vtrDataState = {tenses: trTenses.join(" "), eng: trEng, verbs: trVerbs}
@@ -441,12 +525,29 @@
         if (d.curr == 0) {ntrData.value.curr = 0; return}
         ntrData.value = d;
       }
+      function startWTrain(cat) {
+        console.log(cat);
+        wstartTrain(cat);
+        wtrDataState = wordSelect.value.join(" ");
+        wtrData.value = wnext(-1,true);
+      }
+      function wtrainNext(event,isSucc) {
+        wlastV.value = isSucc;
+        if (wtrData.value.step == 0) {wtrData.value.step = 8; return}
+        if (wtrData.value.curr == 0) {return}
+        let d = wnext(wtrData.value.id,isSucc);
+        saveStateVue();
+        if (d.curr == 0) {wtrData.value.curr = 0; return}
+        wtrData.value = d;
+      }
       function saveStateVue() {
         saveState();
         localStorage.setItem("helpCheck",helpCheck.value);
         localStorage.setItem("vtr_tenses",vtrDataState.tenses);
         localStorage.setItem("vtr_eng",trEng.value);
         localStorage.setItem("vtr_verbs",vtrDataState.verbs);
+        localStorage.setItem("w_sel",wtrDataState);
+        localStorage.setItem("w_rus",wordRus);
       }
       function loadStateVue() {
         let v = localStorage.getItem("helpCheck");
@@ -463,13 +564,19 @@
                 while (d.data.length == 0) {d = vnext(d.id,true)};
                 vtrData.value = d;
             };
-            if (st[1]) {ntrData.value = nnext(-1,true)}
+            if (st[1]) {ntrData.value = nnext(-1,true)};
+            if (st[2]) {
+                wtrDataState = localStorage.getItem("w_sel");
+                wordSelect.value = wtrDataState.split(" ");
+                wordRus.value = localStorage.getItem("w_rus") == "true";
+                wtrData.value = wnext(-1,true);
+            };
         }
       }
       loadStateVue()
       return {
-        message, vconj, calcConj, calcTenses, verbInput, tenseInput, voiceInput, engTense, trVerbs, trEng, trTenses, startVTrain, startNTrain,
-        vtrData, vnext, helpCheck, vtrainNext, ntrainNext, lastV, ntrData, nlastV
+        message, vconj, calcConj, calcTenses, verbInput, tenseInput, voiceInput, engTense, trVerbs, trEng, trTenses, startVTrain, startNTrain, 
+        vtrData, vnext, helpCheck, vtrainNext, ntrainNext, lastV, ntrData, nlastV, wordRus, wordSelect, wlastV, wtrData, startWTrain, wtrainNext
       }
     }
   }).mount('#app')
