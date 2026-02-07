@@ -9,6 +9,7 @@ getv:{
     (x[0],enlist (l;0b);1_x 1)
  };
 d:{
+    lvl:"I"$(i:x?" ")#x; x:i _ x;
     a:"|" vs x; b:{$[count x;(0N 2)#x;()]} trim each 1_a;
     i:min v:(count a 0)^first each ss[a 0;] each rus;
     gr:trim i#a 0; rs: trim i _ a 0;
@@ -30,10 +31,15 @@ d:{
     if[0=count pos;
         if[(not gr~"γύρω")&"ω"~-2#gr; pos:"verb"];
         if["ώ"~-2#gr; pos:"verb"];
-        if[any ("έμαι";"ομαι";"εται";"ύμαι";"έχει")~\:-8#gr; pos:"verb"];
+        if[any ("έμαι";"ομαι";"εται";"ύμαι";"έχει";"ίζει";"ίνει";"άμαι")~\:-8#gr; pos:"verb"];
     ];
-    `greek`pos`art`end`rus`exa`vowels!(gr;pos;art;end;rs;b;{{(raze x[;0];x[0;1])} each (where x[;1]|differ x[;1])_ x} first getv/[{0<count x 1};(();{(where 191<x)_ x}gr)])
-  } each read0 `:verb.json;
+    `greek`lvl`pos`art`end`rus`exa`vowels!(gr;lvl;pos;art;end;rs;b;{{(raze x[;0];x[0;1])} each (where x[;1]|differ x[;1])_ x} first getv/[{0<count x 1};(();{(where 191<x)_ x} {trim (x?"-")#x}gr)])
+  } each read0 `:words.txt;
 
   `:words.js 0: enlist {"words = [\n",x,"\n];"} -1_ "\n" sv {v:"        ",/:({"\"",x,"\""} each string key x),'": ",/:.j.j each value x;"    {\n",(",\n" sv v),"\n    },"} each d;
 
+dd:(d`greek)[;til 20];
+res:(count dd)#enlist ();
+match:{first where (max s)=s:s2[;1]*s2[;0]*sum each s2:("z"^x til 20)=/:dd};
+wmatch:{({i:match each w:{x where 0<count each x} " " vs (first x) except ",():.-"; res[i],:" ",/:w} each) each d`exa; `:match.txt 0: d[`greek],'{$[0=count x;"";" " sv distinct " " vs x]} each res};
+w:"εδάφη"

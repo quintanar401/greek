@@ -50,7 +50,7 @@
         <div class="row mb-3">
             <div class="col-sm">
             <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                <div class="progress-bar" :style="{width: Math.round(100*(ntrData.total-ntrData.curr)/ntrData.total) + '%'}" :class="{'text-bg-success': lastV, 'text-bg-danger': !nlastV}">
+                <div class="progress-bar" :style="{width: Math.round(100*(ntrData.total-ntrData.curr)/ntrData.total) + '%'}" :class="{'text-bg-success': nlastV, 'text-bg-danger': !nlastV}">
                     {{ntrData.total-ntrData.curr}}/{{ntrData.total}}
                 </div>
             </div>
@@ -390,7 +390,7 @@
                         <div class="row mb-3">
                             <div class="col-sm">
                             <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-                                <div class="progress-bar" :style="{width: Math.round(100*(wtrData.total-wtrData.curr)/wtrData.total) + '%'}" :class="{'text-bg-success': lastV, 'text-bg-danger': !nlastV}">
+                                <div class="progress-bar" :style="{width: Math.round(100*(wtrData.total-wtrData.curr)/wtrData.total) + '%'}" :class="{'text-bg-success': wlastV, 'text-bg-danger': !wlastV}">
                                     {{wtrData.total-wtrData.curr}}/{{wtrData.total}}
                                 </div>
                             </div>
@@ -409,6 +409,42 @@
             <div id="collapseTwo2" class="accordion-collapse collapse" data-bs-parent="#accordionExample2">
                 <div class="accordion-body">
                     <div class="container-sm">
+                        <div class="row mb-3">
+                        <label for="vwLevel" class="col-sm-2 col-form-label">Сеты слов:</label>
+                        <div class="col-sm-3">
+                            <select class="form-select" multiple aria-label="vwLevel" size="5" v-model="vwLevel">
+                                <option selected value="0">Базовые, похожие</option>
+                                <option selected value="1">Имена, названия, числа</option>
+                                <option selected value="2">Начальный</option>
+                                <option selected value="3">Средний 1</option>
+                                <option selected value="4">Средний 2</option>
+                            </select>
+                        </div>
+                        <div class="col-sm" v-if="!helpCheck">
+                            Каждый сет кроме имен ~ 500 слов
+                        </div>
+                        </div>
+                        <div><button class="btn btn-primary" @click='startVWTrain()'>Старт/рестарт</button></div>
+                        <div class="row mb-3">
+                            <div class="col-sm user-select-none">
+                                <span style="padding-left: 10px;" class="fs-2" v-for="(value, i) in vowels" @click="(e) => vwUpdate(i)">{{value[0]}}</span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm">
+                                <span class="fs-2" v-for="(v,i) in vwtrData.data.vowels" :class='vwtrData.check[i] == 1 ? "text-danger" : (vwtrData.check[i] == 2 ? "text-success" : "")'>{{vwtrData.check[i] == 0 ? "?" : v[0]}}</span>
+                                <span class="fs-2" style="padding-left: 20px;" v-if="vwtrData.eng.length > 0">{{vwtrData.eng}}</span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm">
+                            <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar" :style="{width: Math.round(100*(vwtrData.total-vwtrData.curr)/vwtrData.total) + '%'}" :class="{'text-bg-success': vwlastV, 'text-bg-danger': !vwlastV}">
+                                    {{vwtrData.total-vwtrData.curr}}/{{vwtrData.total}}
+                                </div>
+                            </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -443,8 +479,11 @@
     for (let x=0; x < wbase.length; x++) {if (wscore[x] > 0) {if (n == 0) {return wnextN(x)} else {n = n - 1}}}};
   wnext = (n,isSuc) => {if (n >=0) {if (isSuc) {wscore[n] = wscore[n] - 1; if (wscore[n] == 0) {wcnt = wcnt - 1}} else {if (wscore[n] < 5) {wscore[n] = 2*wscore[n]}}}; return wnextRnd()}
   
-  vwstartTrain = () => {vwbase = []; vwscore = []; for (let x of words) {if (x.vowels.length > 0)  {vwscore.push(1); vwbase.push(x)}}; vwcnt = vwbase.length}
-  vwnextN = (n) => {let word = vwbase[n]; return { id: n, eng: word.rus, grk: word.greek, total: vwbase.length, curr: vwcnt, data: word, step: 0}};
+  vwbase = [];
+  vwscore = [];
+  vwcnt = 0;
+  vwstartTrain = (lvl) => {vwbase = []; vwscore = []; for (let x of words) {if (x.vowels.length > 1 && 0 <= lvl.indexOf(x.lvl))  {vwscore.push(1); vwbase.push(x)}}; vwcnt = vwbase.length}
+  vwnextN = (n) => {let word = vwbase[n]; let ch = []; for (let x of word.vowels) {if (x[1]) {ch.push(0)} else {ch.push(3)}}; return { id: n, eng: word.rus, grk: word.greek, total: vwbase.length, curr: vwcnt, data: word, step: 0, check: ch}};
   vwnextRnd = () => {let n = 0; if (vwcnt == 0) {return {data:[], curr:0}}; if (vwcnt > 1) {n = Math.floor(vwcnt*Math.random())};
     for (let x=0; x < vwbase.length; x++) {if (vwscore[x] > 0) {if (n == 0) {return vwnextN(x)} else {n = n - 1}}}};
   vwnext = (n,isSuc) => {if (n >=0) {if (isSuc) {vwscore[n] = vwscore[n] - 1; if (vwscore[n] == 0) {vwcnt = vwcnt - 1}} else {if (vwscore[n] < 5) {vwscore[n] = 2*vwscore[n]}}}; return vwnextRnd()}
@@ -481,7 +520,7 @@
     localStorage.setItem("vwscore",vwscore);
     localStorage.setItem("vwcnt",vwcnt);
   }
-  loadState = (trVerbs,trTenses) => {
+  loadState = (trVerbs,trTenses,vw_lvl) => {
     vcnt = localStorage.getItem("vcnt");
     if (vcnt > 0) {
         vstartTrain(trVerbs,trTenses);
@@ -503,7 +542,7 @@
     }
     vwcnt = localStorage.getItem("vwcnt");
     if (vwcnt > 0) {
-        vwstartTrain();
+        vwstartTrain(vw_lvl);
         vwcnt = localStorage.getItem("vwcnt");
         vwscore = localStorage.getItem("vwscore").split(",").map(x => parseInt(x));
     }
@@ -529,9 +568,11 @@
       const vtrData = ref({eng: "", grk: "", total: 1, curr: 1, id: -1})
       const ntrData = ref({eng: "", grk: "", total: 1, curr: 1, id: -1})
       const wtrData = ref({eng: "", grk: "", total: 1, curr: 1, id: -1, data: {exa: []}})
-      const vwtrData = ref({eng: "", grk: "", total: 1, curr: 1, id: -1, data: {vowels: []}})
+      const vwtrData = ref({eng: "", grk: "", total: 1, curr: 1, id: -1, data: {vowels: []}, check:[]})
       const wordRus = ref(false);
       const wordSelect = ref(["noun","adj","verb",""]);
+      const vowels = ref([["οι","οί"],["ει","εί"],["η","ή"],["υ","ύ"],["ι","ί"],["αι","αί"],["ε","έ"],["ω","ώ"],["ο","ό"]]);
+      const vwLevel = ref([0,1,2,3,4]);
       let vtrDataState = {tenses: trTenses.value.join(" "), verbs: "all"};
       let wtrDataState = wordSelect.value.join(" ");
       function startVTrain(trTenses,trEng,trVerbs) {
@@ -558,8 +599,8 @@
         ntrData.value = nnext(-1,true);
       }
       function ntrainNext(event,isSucc) {
-        nlastV.value = isSucc;
         if (ntrData.value.step == 0) {ntrData.value.step = 8; return}
+        nlastV.value = isSucc;
         if (ntrData.value.curr == 0) {return}
         let d = nnext(ntrData.value.id,isSucc);
         saveStateVue();
@@ -572,26 +613,44 @@
         wtrData.value = wnext(-1,true);
       }
       function wtrainNext(event,isSucc) {
-        wlastV.value = isSucc;
         if (wtrData.value.step == 0) {wtrData.value.step = 8; return}
+        wlastV.value = isSucc;
         if (wtrData.value.curr == 0) {return}
         let d = wnext(wtrData.value.id,isSucc);
         saveStateVue();
         if (d.curr == 0) {wtrData.value.curr = 0; return}
         wtrData.value = d;
+        console.log(d)
       }
-      function startVWTrain(cat) {
-        vwstartTrain(cat);
+      function startVWTrain() {
+        let v = vwLevel.value.map(x => parseInt(x));
+        if (v.length == 0) {return}
+        console.log(v);
+        vwstartTrain(v);
         vwtrData.value = vwnext(-1,true);
       }
       function vwtrainNext(event,isSucc) {
         vwlastV.value = isSucc;
-        if (vwtrData.value.step == 0) {vwtrData.value.step = 8; return}
         if (vwtrData.value.curr == 0) {return}
         let d = vwnext(vwtrData.value.id,isSucc);
         saveStateVue();
         if (d.curr == 0) {vwtrData.value.curr = 0; return}
         vwtrData.value = d;
+      }
+      function vwUpdate(i) {
+        let s = vowels.value[i];
+        let succ = true;
+        for (let j=0;j<vwtrData.value.check.length;j++) {
+            if (vwtrData.value.check[j] == 1) {succ = false}
+            if (vwtrData.value.check[j] == 0) {
+                let v = 1;
+                let w = vwtrData.value.data.vowels[j][0];
+                if (s[0] == w || s[1] == w) {v = 2}
+                vwtrData.value.check[j] = v;
+                return;
+            }
+        }
+        vwtrainNext(0,succ)
       }
       function saveStateVue() {
         saveState();
@@ -600,7 +659,8 @@
         localStorage.setItem("vtr_eng",trEng.value);
         localStorage.setItem("vtr_verbs",vtrDataState.verbs);
         localStorage.setItem("w_sel",wtrDataState);
-        localStorage.setItem("w_rus",wordRus);
+        localStorage.setItem("w_rus",wordRus.value);
+        localStorage.setItem("vw_lvl",vwLevel.value);
       }
       function loadStateVue() {
         let v = localStorage.getItem("helpCheck");
@@ -611,7 +671,10 @@
             trEng.value = localStorage.getItem("vtr_eng") == "true";
             trTenses.value = vtrDataState.tenses.split(" ");
             trVerbs.value = vtrDataState.verbs;
-            let st = loadState(trVerbs.value,trTenses.value);
+            let vw_lvl = localStorage.getItem("vw_lvl");
+            if (vw_lvl == null) {vw_lvl = [0,1,2,3,4]} else {vw_lvl = vw_lvl.split(",").map(x => parseInt(x))};
+            vwLevel.value = vw_lvl;
+            let st = loadState(trVerbs.value,trTenses.value,vw_lvl);
             if (st[0]) {
                 let d = {data: [], id: -1};
                 while (d.data.length == 0) {d = vnext(d.id,true)};
@@ -631,7 +694,7 @@
       return {
         message, vconj, calcConj, calcTenses, verbInput, tenseInput, voiceInput, engTense, trVerbs, trEng, trTenses, startVTrain, startNTrain, 
         vtrData, vnext, helpCheck, vtrainNext, ntrainNext, lastV, ntrData, nlastV, wordRus, wordSelect, wlastV, wtrData, startWTrain, wtrainNext,
-        vwlastV, vwtrData, startVWTrain, vwtrainNext,
+        vwlastV, vwtrData, startVWTrain, vwtrainNext, vowels, vwUpdate, vwLevel
       }
     }
   }).mount('#app')
