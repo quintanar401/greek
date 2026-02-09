@@ -31,7 +31,7 @@ d:{
     if[0=count pos;
         if[(not gr~"γύρω")&"ω"~-2#gr; pos:"verb"];
         if["ώ"~-2#gr; pos:"verb"];
-        if[any ("έμαι";"ομαι";"εται";"ύμαι";"έχει";"ίζει";"ίνει";"άμαι")~\:-8#gr; pos:"verb"];
+        if[any ("έμαι";"ομαι";"εται";"ύμαι";"έχει";"ίζει";"ίνει";"άμαι";"έπει";"ίται")~\:-8#gr; pos:"verb"];
     ];
     `greek`lvl`pos`art`end`rus`exa`vowels!(gr;lvl;pos;art;end;rs;b;{{(raze x[;0];x[0;1])} each (where x[;1]|differ x[;1])_ x} first getv/[{0<count x 1};(();{(where 191<x)_ x} {trim (x?"-")#x}gr)])
   } each read0 `:words.txt;

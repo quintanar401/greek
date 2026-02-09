@@ -99,6 +99,12 @@ nouns = [
         "nouns": ["yard πήχυς","axe πέλεκυς|πελέκεις"]
     },
     {
+        "group": "Masculine -υς 2",
+        "art": artsm,
+        "endings": ["ς","ός","","","ες2","ών","ς","ε2"],
+        "nouns": ["muscle μυς|μύες"]
+    },
+    {
         "group": "Feminine -ά 1",
         "art": artsf,
         "endings": ["ά","άς","ά","ά","ές","ών","ές","ές"],
@@ -216,7 +222,7 @@ nouns = [
         "group": "Neuter -ος 1",
         "art": artsn,
         "endings": ["ος","ους","ος","ος","η","ών2","η","η"],
-        "nouns": ["end τέλος|τελών"]
+        "nouns": ["end τέλος|τελών", "trace ίχνος|ιχνών"]
     },
     {
         "group": "Neuter -ος 2",

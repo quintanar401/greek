@@ -360,6 +360,22 @@
                                 </div>
                             </div>
                             <div class="row mb-3">
+                            <label for="wLevel" class="col-sm-2 col-form-label">Сеты слов:</label>
+                            <div class="col-sm-3">
+                                <select class="form-select" multiple aria-label="wLevel" size="6" v-model="wLevel">
+                                    <option selected value="0">Базовые, похожие</option>
+                                    <option selected value="1">Имена, названия, числа</option>
+                                    <option selected value="2">Начальный</option>
+                                    <option selected value="3">Средний 1</option>
+                                    <option selected value="4">Средний 2</option>
+                                    <option selected value="5">Продвинутый</option>
+                                </select>
+                            </div>
+                            <div class="col-sm" v-if="!helpCheck">
+                                Каждый сет кроме имен и последнего ~ 500 слов
+                            </div>
+                            </div>
+                            <div class="row mb-3">
                                 <label for="wordSelect" class="col-sm-2 col-form-label">Части речи:</label>
                                 <div class="col-sm-3">
                                     <select class="form-select" multiple aria-label="wordSelect" size="4" v-model="wordSelect">
@@ -412,16 +428,17 @@
                         <div class="row mb-3">
                         <label for="vwLevel" class="col-sm-2 col-form-label">Сеты слов:</label>
                         <div class="col-sm-3">
-                            <select class="form-select" multiple aria-label="vwLevel" size="5" v-model="vwLevel">
+                            <select class="form-select" multiple aria-label="vwLevel" size="6" v-model="vwLevel">
                                 <option selected value="0">Базовые, похожие</option>
                                 <option selected value="1">Имена, названия, числа</option>
                                 <option selected value="2">Начальный</option>
                                 <option selected value="3">Средний 1</option>
                                 <option selected value="4">Средний 2</option>
+                                <option selected value="5">Продвинутый</option>
                             </select>
                         </div>
                         <div class="col-sm" v-if="!helpCheck">
-                            Каждый сет кроме имен ~ 500 слов
+                            Каждый сет кроме имен и последнего ~ 500 слов
                         </div>
                         </div>
                         <div><button class="btn btn-primary" @click='startVWTrain()'>Старт/рестарт</button></div>
@@ -473,7 +490,7 @@
   wbase = [];
   wscore = [];
   wcnt = 0;
-  wstartTrain = (cat) => {wbase = []; wscore = []; for (let x of words) {if (cat.indexOf(x.pos) >= 0)  {wscore.push(1); wbase.push(x)}}; wcnt = wbase.length};
+  wstartTrain = (cat,lvl) => {wbase = []; wscore = []; for (let x of words) {if (cat.indexOf(x.pos) >= 0 && 0 <= lvl.indexOf(x.lvl))  {wscore.push(1); wbase.push(x)}}; wcnt = wbase.length};
   wnextN = (n) => {let word = wbase[n]; return { id: n, eng: word.rus, grk: word.greek, total: wbase.length, curr: wcnt, data: word, step: 0}};
   wnextRnd = () => {let n = 0; if (wcnt == 0) {return {data:[], curr:0}}; if (wcnt > 1) {n = Math.floor(wcnt*Math.random())};
     for (let x=0; x < wbase.length; x++) {if (wscore[x] > 0) {if (n == 0) {return wnextN(x)} else {n = n - 1}}}};
@@ -520,7 +537,7 @@
     localStorage.setItem("vwscore",vwscore);
     localStorage.setItem("vwcnt",vwcnt);
   }
-  loadState = (trVerbs,trTenses,vw_lvl) => {
+  loadState = (trVerbs,trTenses,w_lvl,vw_lvl) => {
     vcnt = localStorage.getItem("vcnt");
     if (vcnt > 0) {
         vstartTrain(trVerbs,trTenses);
@@ -536,7 +553,7 @@
     wcnt = localStorage.getItem("wcnt");
     if (wcnt > 0) {
         let cat = localStorage.getItem("w_sel").split(" ");
-        wstartTrain(cat);
+        wstartTrain(cat,w_lvl);
         wcnt = localStorage.getItem("wcnt");
         wscore = localStorage.getItem("wscore").split(",").map(x => parseInt(x));
     }
@@ -572,7 +589,8 @@
       const wordRus = ref(false);
       const wordSelect = ref(["noun","adj","verb",""]);
       const vowels = ref([["οι","οί"],["ει","εί"],["η","ή"],["υ","ύ"],["ι","ί"],["αι","αί"],["ε","έ"],["ω","ώ"],["ο","ό"]]);
-      const vwLevel = ref([0,1,2,3,4]);
+      const vwLevel = ref([0,1,2,3,4,5]);
+      const wLevel = ref([0,1,2,3,4,5]);
       let vtrDataState = {tenses: trTenses.value.join(" "), verbs: "all"};
       let wtrDataState = wordSelect.value.join(" ");
       function startVTrain(trTenses,trEng,trVerbs) {
@@ -608,7 +626,8 @@
         ntrData.value = d;
       }
       function startWTrain(cat) {
-        wstartTrain(cat);
+        let v = wLevel.value.map(x => parseInt(x));
+        wstartTrain(cat,v);
         wtrDataState = wordSelect.value.join(" ");
         wtrData.value = wnext(-1,true);
       }
@@ -660,6 +679,7 @@
         localStorage.setItem("vtr_verbs",vtrDataState.verbs);
         localStorage.setItem("w_sel",wtrDataState);
         localStorage.setItem("w_rus",wordRus.value);
+        localStorage.setItem("w_lvl",wLevel.value);
         localStorage.setItem("vw_lvl",vwLevel.value);
       }
       function loadStateVue() {
@@ -672,9 +692,12 @@
             trTenses.value = vtrDataState.tenses.split(" ");
             trVerbs.value = vtrDataState.verbs;
             let vw_lvl = localStorage.getItem("vw_lvl");
-            if (vw_lvl == null) {vw_lvl = [0,1,2,3,4]} else {vw_lvl = vw_lvl.split(",").map(x => parseInt(x))};
+            if (vw_lvl == null) {vw_lvl = [0,1,2,3,4,5]} else {vw_lvl = vw_lvl.split(",").map(x => parseInt(x))};
             vwLevel.value = vw_lvl;
-            let st = loadState(trVerbs.value,trTenses.value,vw_lvl);
+            let w_lvl = localStorage.getItem("w_lvl");
+            if (w_lvl == null) {w_lvl = [0,1,2,3,4,5]} else {w_lvl = w_lvl.split(",").map(x => parseInt(x))};
+            wLevel.value = w_lvl;
+            let st = loadState(trVerbs.value,trTenses.value,w_lvl,vw_lvl);
             if (st[0]) {
                 let d = {data: [], id: -1};
                 while (d.data.length == 0) {d = vnext(d.id,true)};
@@ -694,7 +717,7 @@
       return {
         message, vconj, calcConj, calcTenses, verbInput, tenseInput, voiceInput, engTense, trVerbs, trEng, trTenses, startVTrain, startNTrain, 
         vtrData, vnext, helpCheck, vtrainNext, ntrainNext, lastV, ntrData, nlastV, wordRus, wordSelect, wlastV, wtrData, startWTrain, wtrainNext,
-        vwlastV, vwtrData, startVWTrain, vwtrainNext, vowels, vwUpdate, vwLevel
+        vwlastV, vwtrData, startVWTrain, vwtrainNext, vowels, vwUpdate, vwLevel, wLevel
       }
     }
   }).mount('#app')
