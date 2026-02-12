@@ -444,7 +444,7 @@
                         <div><button class="btn btn-primary" @click='startVWTrain()'>Старт/рестарт</button></div>
                         <div class="row mb-3">
                             <div class="col-sm user-select-none">
-                                <span style="padding-left: 10px;" class="fs-2" v-for="(value, i) in vowels" @click="(e) => vwUpdate(i)">{{value[0]}}</span>
+                                <span style="padding-left: 10px; min-width: 20px;" class="fs-2" v-for="(value, i) in vowels" @click="(e) => vwUpdate(i)">{{value[0]}}</span>
                             </div>
                         </div>
                         <div class="row mb-3">
@@ -493,8 +493,12 @@
   wstartTrain = (cat,lvl) => {wbase = []; wscore = []; for (let x of words) {if (cat.indexOf(x.pos) >= 0 && 0 <= lvl.indexOf(x.lvl))  {wscore.push(1); wbase.push(x)}}; wcnt = wbase.length};
   wnextN = (n) => {let word = wbase[n]; return { id: n, eng: word.rus, grk: word.greek, total: wbase.length, curr: wcnt, data: word, step: 0}};
   wnextRnd = () => {let n = 0; if (wcnt == 0) {return {data:[], curr:0}}; if (wcnt > 1) {n = Math.floor(wcnt*Math.random())};
-    for (let x=0; x < wbase.length; x++) {if (wscore[x] > 0) {if (n == 0) {return wnextN(x)} else {n = n - 1}}}};
+  for (let x=0; x < wbase.length; x++) {if (wscore[x] > 0) {if (n == 0) {return wnextN(x)} else {n = n - 1}}}};
   wnext = (n,isSuc) => {if (n >=0) {if (isSuc) {wscore[n] = wscore[n] - 1; if (wscore[n] == 0) {wcnt = wcnt - 1}} else {if (wscore[n] < 5) {wscore[n] = 2*wscore[n]}}}; return wnextRnd()}
+  
+  vwmemo = [];
+  mkvwlist = () => {for (let x of words) {x.idx = vwmemo.length; vwmemo.push(1)}}
+  mkvwlist();
   
   vwbase = [];
   vwscore = [];
@@ -503,7 +507,8 @@
   vwnextN = (n) => {let word = vwbase[n]; let ch = []; for (let x of word.vowels) {if (x[1]) {ch.push(0)} else {ch.push(3)}}; return { id: n, eng: word.rus, grk: word.greek, total: vwbase.length, curr: vwcnt, data: word, step: 0, check: ch}};
   vwnextRnd = () => {let n = 0; if (vwcnt == 0) {return {data:[], curr:0}}; if (vwcnt > 1) {n = Math.floor(vwcnt*Math.random())};
     for (let x=0; x < vwbase.length; x++) {if (vwscore[x] > 0) {if (n == 0) {return vwnextN(x)} else {n = n - 1}}}};
-  vwnext = (n,isSuc) => {if (n >=0) {if (isSuc) {vwscore[n] = vwscore[n] - 1; if (vwscore[n] == 0) {vwcnt = vwcnt - 1}} else {if (vwscore[n] < 5) {vwscore[n] = 2*vwscore[n]}}}; return vwnextRnd()}
+  vwnext = (n,isSuc) => {if (n >=0) {if (isSuc) {vwscore[n] = vwscore[n] - 1;
+    if (vwscore[n] == 0) {vwcnt = vwcnt - 1; ; vwmemo[vwbase[n].idx] = vwmemo[vwbase[n].idx] - 1}} else {if (vwscore[n] < 5) {vwscore[n] = 2*vwscore[n]}; vwmemo[vwbase[n].idx] = 4}}; return vwnextRnd()}
 
   function calcConj(v,tense,voice) {
     let res = [];
@@ -536,6 +541,7 @@
     localStorage.setItem("wcnt",wcnt);
     localStorage.setItem("vwscore",vwscore);
     localStorage.setItem("vwcnt",vwcnt);
+    localStorage.setItem("vwmemo",vwmemo);
   }
   loadState = (trVerbs,trTenses,w_lvl,vw_lvl) => {
     vcnt = localStorage.getItem("vcnt");
@@ -557,6 +563,8 @@
         wcnt = localStorage.getItem("wcnt");
         wscore = localStorage.getItem("wscore").split(",").map(x => parseInt(x));
     }
+    let m = localStorage.getItem("vwmemo");
+    if (m) {let mm = m.split(",").map(x => parseInt(x)); if (mm.length == vwmemo.length) {vwmemo = mm}}
     vwcnt = localStorage.getItem("vwcnt");
     if (vwcnt > 0) {
         vwstartTrain(vw_lvl);
