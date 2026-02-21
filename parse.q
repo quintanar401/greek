@@ -38,8 +38,12 @@ d:{
 
   `:words.js 0: enlist {"words = [\n",x,"\n];"} -1_ "\n" sv {v:"        ",/:({"\"",x,"\""} each string key x),'": ",/:.j.j each value x;"    {\n",(",\n" sv v),"\n    },"} each d;
 
-dd:(d`greek)[;til 20];
+vmap:("ώ";"ό";"ή";"ύ";"ί";"έ")!("ω";"ο";"η";"υ";"ι";"ε");
+noacc:{w:vmap x:(where (x>191)|x<128)_x; w[i]:x i:where 0=count each w; raze w};
+dd:noacc each (d`greek)[;til 20] ig:iasc d`greek;
 res:(count dd)#enlist ();
 match:{first where (max s)=s:s2[;1]*s2[;0]*sum each s2:("z"^x til 20)=/:dd};
-wmatch:{({i:match each w:{x where 0<count each x} " " vs (first x) except ",():.-"; res[i],:" ",/:w} each) each d`exa; `:match.txt 0: d[`greek],'{$[0=count x;"";" " sv distinct " " vs x]} each res};
+wmatch:{({i:match each w:{x where 0<count each x} " " vs (first x) except ",():.-"; res[i],:" ",/:w} each) each d`exa; `:match.txt 0: (d[`greek] ig),'{$[0=count x;"";" " sv distinct " " vs x]} each res};
 w:"εδάφη"
+
+wmatch2:{i:match each noacc each w:distinct {x where 0<count each x} " " vs (" " sv read0 `:book1.txt) except ",():.-"; res[i],:" ",/:w; `:match.txt 0: d[`greek],'{$[0=count x;"";" " sv distinct " " vs x]} each res};

@@ -395,7 +395,8 @@
                             <div class="col-sm">
                             <div style="padding-top: 15px;" v-if='wtrData.grk != ""'>
                                 <span @click.prevent.stop="(e) => wtrainNext(e,true)" @contextmenu.prevent.stop="(e) => wtrainNext(e,false)" style="font-size: x-large;" class="user-select-none">{{ wordRus ? wtrData.eng : wtrData.grk }}</span>
-                                <span v-if="wtrData.step > 0"> - {{ wordRus ? wtrData.grk : wtrData.eng }}</span>
+                                <span v-if="wtrData.step > 0"> - {{ wordRus ? wtrData.grk : wtrData.eng }}</span> <span v-if="wtrData.step > 0" style="padding-left: 10px;">{{wtrData.data.art}}</span>
+                                <span v-if="wtrData.step > 0" v-for="x in wtrData.data.end" style="padding-left: 10px;">{{x}}</span>
                             </div>
                             </div>
                         </div>
@@ -426,6 +427,19 @@
                 <div class="accordion-body">
                     <div class="container-sm">
                         <div class="row mb-3">
+                                <div class="col-sm-5">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="vwdiff" v-model="vwdiff">
+                                    <label class="form-check-label" for="checkDefault">
+                                        повторение слов с ошибками
+                                    </label>
+                                </div>
+                                </div>
+                                <div class="col-sm" v-if="!helpCheck">
+                                    
+                                </div>
+                        </div>
+                        <div class="row mb-3">
                         <label for="vwLevel" class="col-sm-2 col-form-label">Сеты слов:</label>
                         <div class="col-sm-3">
                             <select class="form-select" multiple aria-label="vwLevel" size="6" v-model="vwLevel">
@@ -438,7 +452,7 @@
                             </select>
                         </div>
                         <div class="col-sm" v-if="!helpCheck">
-                            Каждый сет кроме имен и последнего ~ 500 слов
+                            Total now: {{getVwcnt()}}. Каждый сет кроме имен и последнего ~ 500 слов
                         </div>
                         </div>
                         <div><button class="btn btn-primary" @click='startVWTrain()'>Старт/рестарт</button></div>
@@ -503,7 +517,8 @@
   vwbase = [];
   vwscore = [];
   vwcnt = 0;
-  vwstartTrain = (lvl) => {vwbase = []; vwscore = []; for (let x of words) {if (x.vowels.length > 1 && 0 <= lvl.indexOf(x.lvl))  {vwscore.push(1); vwbase.push(x)}}; vwcnt = vwbase.length}
+  vwstartTrain = (lvl,vwdiff) => {vwbase = []; vwscore = []; let stp = 0; if (vwdiff) {stp = 1}; for (let x of words) {
+    if (x.vowels.length > 1 && 0 <= lvl.indexOf(x.lvl) && vwmemo[x.idx] >= stp)  {vwscore.push(1); vwbase.push(x)}}; vwcnt = vwbase.length}
   vwnextN = (n) => {let word = vwbase[n]; let ch = []; for (let x of word.vowels) {if (x[1]) {ch.push(0)} else {ch.push(3)}}; return { id: n, eng: word.rus, grk: word.greek, total: vwbase.length, curr: vwcnt, data: word, step: 0, check: ch}};
   vwnextRnd = () => {let n = 0; if (vwcnt == 0) {return {data:[], curr:0}}; if (vwcnt > 1) {n = Math.floor(vwcnt*Math.random())};
     for (let x=0; x < vwbase.length; x++) {if (vwscore[x] > 0) {if (n == 0) {return vwnextN(x)} else {n = n - 1}}}};
@@ -543,7 +558,7 @@
     localStorage.setItem("vwcnt",vwcnt);
     localStorage.setItem("vwmemo",vwmemo);
   }
-  loadState = (trVerbs,trTenses,w_lvl,vw_lvl) => {
+  loadState = (trVerbs,trTenses,w_lvl,vw_lvl,vwdiff) => {
     vcnt = localStorage.getItem("vcnt");
     if (vcnt > 0) {
         vstartTrain(trVerbs,trTenses);
@@ -567,7 +582,7 @@
     if (m) {let mm = m.split(",").map(x => parseInt(x)); if (mm.length == vwmemo.length) {vwmemo = mm}}
     vwcnt = localStorage.getItem("vwcnt");
     if (vwcnt > 0) {
-        vwstartTrain(vw_lvl);
+        vwstartTrain(vw_lvl,vwdiff);
         vwcnt = localStorage.getItem("vwcnt");
         vwscore = localStorage.getItem("vwscore").split(",").map(x => parseInt(x));
     }
@@ -589,6 +604,7 @@
       const nlastV = ref(true)
       const wlastV = ref(true)
       const vwlastV = ref(true)
+      const vwdiff = ref(false)
       const trTenses = ref(["present_active","imperfect_active","aorist_active","future_active","present_passive","imperfect_passive","aorist_passive","future_passive"])
       const vtrData = ref({eng: "", grk: "", total: 1, curr: 1, id: -1})
       const ntrData = ref({eng: "", grk: "", total: 1, curr: 1, id: -1})
@@ -653,7 +669,7 @@
         let v = vwLevel.value.map(x => parseInt(x));
         if (v.length == 0) {return}
         console.log(v);
-        vwstartTrain(v);
+        vwstartTrain(v,vwdiff.value);
         vwtrData.value = vwnext(-1,true);
       }
       function vwtrainNext(event,isSucc) {
@@ -679,6 +695,7 @@
         }
         vwtrainNext(0,succ)
       }
+      function getVwcnt() {return vwcnt}
       function saveStateVue() {
         saveState();
         localStorage.setItem("helpCheck",helpCheck.value);
@@ -689,6 +706,7 @@
         localStorage.setItem("w_rus",wordRus.value);
         localStorage.setItem("w_lvl",wLevel.value);
         localStorage.setItem("vw_lvl",vwLevel.value);
+        localStorage.setItem("vwdiff",vwdiff.value);
       }
       function loadStateVue() {
         let v = localStorage.getItem("helpCheck");
@@ -702,10 +720,13 @@
             let vw_lvl = localStorage.getItem("vw_lvl");
             if (vw_lvl == null) {vw_lvl = [0,1,2,3,4,5]} else {vw_lvl = vw_lvl.split(",").map(x => parseInt(x))};
             vwLevel.value = vw_lvl;
+            let vwdiff = localStorage.getItem("vwdiff");
+            if (vwdiff == null) {vwdiff = false} else {vwdiff = vwdiff == "true"};
+            vwdiff.value = vwdiff;
             let w_lvl = localStorage.getItem("w_lvl");
             if (w_lvl == null) {w_lvl = [0,1,2,3,4,5]} else {w_lvl = w_lvl.split(",").map(x => parseInt(x))};
             wLevel.value = w_lvl;
-            let st = loadState(trVerbs.value,trTenses.value,w_lvl,vw_lvl);
+            let st = loadState(trVerbs.value,trTenses.value,w_lvl,vw_lvl,vwdiff);
             if (st[0]) {
                 let d = {data: [], id: -1};
                 while (d.data.length == 0) {d = vnext(d.id,true)};
@@ -725,7 +746,7 @@
       return {
         message, vconj, calcConj, calcTenses, verbInput, tenseInput, voiceInput, engTense, trVerbs, trEng, trTenses, startVTrain, startNTrain, 
         vtrData, vnext, helpCheck, vtrainNext, ntrainNext, lastV, ntrData, nlastV, wordRus, wordSelect, wlastV, wtrData, startWTrain, wtrainNext,
-        vwlastV, vwtrData, startVWTrain, vwtrainNext, vowels, vwUpdate, vwLevel, wLevel
+        vwlastV, vwtrData, startVWTrain, vwtrainNext, vowels, vwUpdate, vwLevel, wLevel, vwdiff, getVwcnt
       }
     }
   }).mount('#app')
