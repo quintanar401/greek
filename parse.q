@@ -40,10 +40,10 @@ d:{
 
 vmap:("ά";"ώ";"ό";"ή";"ύ";"ί";"έ";"Α";"Η";"Ή";"Γ";"Κ";"Π";"Δ";"Τ";"Ε";"Έ";"Μ";"Ο";"Ξ";"Σ";"ς";"Ψ";"Ν";"Ω";"Ύ";"Ό";"Λ";"Ά";"Ί";"Β";"Ζ";"Θ";"Ι";"Ρ";"Φ";"Χ")!
      ("α";"ω";"ο";"η";"υ";"ι";"ε";"α";"η";"η";"γ";"κ";"π";"δ";"τ";"ε";"ε";"μ";"ο";"ξ";"σ";"σ";"ψ";"ν";"ω";"υ";"ο";"λ";"α";"ι";"β";"ζ";"θ";"ι";"ρ";"φ";"χ");
-noacc:{w:vmap x:(where (x>191)|x<128)_x; w[i]:x i:where 0=count each w; raze w};
-dd:noacc each (d`greek)[;til 20] ig:iasc nd:noacc each d`greek;
+noacc:{w:vmap x:(where (x>191)|x<128)_x; w[i]:x i:where 0=count each w; 256 sv/: "i"$w};
+dd:(noacc each (d`greek) ig:iasc nd:noacc each d`greek)[;til 20];
 res:(count dd)#enlist ();
-match:{first where (max s)=s:s2[;1]*s2[;0]*sum each s2:("z"^x til 20)=/:dd};
+match:{first where (max s)=s:s2[;1]*s2[;0]*sum each s2:(1^x til 20)=/:dd};
 wmatch:{({i:match each w:{x where 0<count each x} " " vs (first x) except ",():.-"; res[i],:" ",/:w} each) each d`exa; `:match.txt 0: (d[`greek] ig),'{$[0=count x;"";" " sv distinct " " vs x]} each res};
 w:"εδάφη"
 
