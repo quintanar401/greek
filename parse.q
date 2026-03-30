@@ -47,5 +47,5 @@ match:{first where (max s)=s:s2[;1]*s2[;0]*sum each s2:(1^x til 20)=/:dd};
 wmatch:{({i:match each w:{x where 0<count each x} " " vs (first x) except ",():.-"; res[i],:" ",/:w} each) each d`exa; `:match.txt 0: (d[`greek] ig),'{$[0=count x;"";" " sv distinct " " vs x]} each res};
 w:"εδάφη"
 
-wmatch2:{i:match each noacc each w:{x where 0<count each x} " " vs (" " sv read0 `:book1.txt) except ",():.-!;";
+wmatch2:{i:match each noacc each w:{x where 0<count each x} " " vs (" " sv read0 `:book2.txt) except ",():.-!;";
  res[i],:" ",/:w; `:match.txt 0: (d[`greek] ig),'{$[0=count x;"";" " sv {key[x],'"(",'string[count each value x],'")"} group trim " " vs x]} each R::res};

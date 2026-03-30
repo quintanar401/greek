@@ -368,7 +368,9 @@
                                     <option selected value="2">Начальный</option>
                                     <option selected value="3">Средний 1</option>
                                     <option selected value="4">Средний 2</option>
-                                    <option selected value="5">Продвинутый</option>
+	    			<option selected value="5">Продвинутый 1</option>
+				<option selected value="6">Продвинутый 2</option>
+                                <option selected value="7">Продвинутый 3</option>
                                 </select>
                             </div>
                             <div class="col-sm" v-if="!helpCheck">
@@ -448,7 +450,9 @@
                                 <option selected value="2">Начальный</option>
                                 <option selected value="3">Средний 1</option>
                                 <option selected value="4">Средний 2</option>
-                                <option selected value="5">Продвинутый</option>
+				<option selected value="5">Продвинутый 1</option>
+				<option selected value="6">Продвинутый 2</option>
+                                <option selected value="7">Продвинутый 3</option>
                             </select>
                         </div>
                         <div class="col-sm" v-if="!helpCheck">
@@ -613,8 +617,8 @@
       const wordRus = ref(false);
       const wordSelect = ref(["noun","adj","verb",""]);
       const vowels = ref([["οι","οί"],["ει","εί"],["η","ή"],["υ","ύ"],["ι","ί"],["αι","αί"],["ε","έ"],["ω","ώ"],["ο","ό"]]);
-      const vwLevel = ref([0,1,2,3,4,5]);
-      const wLevel = ref([0,1,2,3,4,5]);
+      const vwLevel = ref([0,1,2,3,4,5,6,7]);
+      const wLevel = ref([0,1,2,3,4,5,6,7]);
       let vtrDataState = {tenses: trTenses.value.join(" "), verbs: "all"};
       let wtrDataState = wordSelect.value.join(" ");
       function startVTrain(trTenses,trEng,trVerbs) {
